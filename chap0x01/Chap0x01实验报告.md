@@ -19,7 +19,9 @@
 
 ## 实验环境
 1. 网络拓扑
+
     ![](img/网络拓扑.png)
+
 2. 虚拟机配置
   - 四台靶机：
     - intnet1
@@ -38,10 +40,9 @@
 ### 虚拟机配置
 
 - 虚拟硬盘配置为多重加载
-![](img/多重加载.png)
-
+- ![](img/多重加载.png)
 - 利用多重加载后的硬盘创建所需的虚拟机
-![](img/create-all-vm.png)
+- ![](img/create-all-vm.png)
 
 ### 网络配置
 
@@ -189,6 +190,10 @@ victim-ub 对外上下行流量会经过网关
 ![](img/ub-gateway.png)
 
 #### 5. 所有节点均可以访问互联网
+
+gateway
+
+![](img/gateway-ping-外网.png)
 
 victim-kali
 
