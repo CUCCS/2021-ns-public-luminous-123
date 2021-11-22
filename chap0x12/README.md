@@ -20,39 +20,39 @@
 
 1. 统计主机信息
 
-2. ```bash
+   ```bash
    tshark -r attack-trace.pcap -z ip_hosts,tree -qn
    ```
 
-3. ![Q1](img/Challenge1-Q1.png)
+   ![Q1](img/Challenge1-Q1.png)
 
-4. 一共只有两个ip地址在这个流量包中
+   一共只有两个ip地址在这个流量包中
 
-5. 谁主动发起网络连接
+2. 谁主动发起网络连接
 
-6. ```bash
+   ```bash
    tshark -r attack-trace.pcap -Y "tcp.flags == 0x02" -n
    ```
 
-7. ![Q2](img/Challenge1-Q2.png)
+   ![Q2](img/Challenge1-Q2.png)
 
-8. 可以推断98.114.205.102 在攻击 192.150.11.111
+   可以推断98.114.205.102 在攻击 192.150.11.111
 
-9. 推断攻击持续时间
+3. 推断攻击持续时间
 
-10. ```bash
-    capinfos attack-trace.pcap
-    ```
+   ```bash
+   capinfos attack-trace.pcap
+   ```
 
-11. ![Q3](img/Challenge1-Q4.png)
+   ![Q3](img/Challenge1-Q4.png)
 
-12. 自动分析攻击详情
+4. 自动分析攻击详情
 
-13. ```bash
-    suricata -r attack-trace.pcap
-    ```
+   ```bash
+   suricata -r attack-trace.pcap
+   ```
 
-14. ![Q4](img/Challenge1-Q3.png)
+   ![Q4](img/Challenge1-Q3.png)
 
 15. 查看 TCP 会话信息
 
