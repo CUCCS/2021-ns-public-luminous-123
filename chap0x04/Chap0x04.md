@@ -126,7 +126,7 @@ restorepkt2 = Ether()/ARP(op=2, pdst="172.16.111.1", hwdst="08:00:27:e2:83:12", 
 sendp(restorepkt2, count=100, inter=0.2)
 ```
 
-查看受害者手机的ARP缓存，已经成功恢复
+查看受害者主机的ARP缓存，已经成功恢复
 
 ![](img/restore-arp.png)
 
