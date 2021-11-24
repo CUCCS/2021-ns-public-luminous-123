@@ -88,7 +88,7 @@ sudo tcpdump -i eth0 -w tcp-connect-close.pcap
 
 ![tcp-close-wireshark](img/tcp-connect-close-tcpdump.png)
 
-攻击者接收道德为RST/ACK数据包，说明8888端口处于关闭状态，与预期相符
+攻击者接收到的为RST/ACK数据包，说明8888端口处于关闭状态，与预期相符
 
 使用nmap复刻结果
 
