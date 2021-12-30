@@ -54,27 +54,28 @@ lsof -i 4 -L -P -n//查看处于监听状态的端口
 
 - 攻击者向靶机发送SYN包，如果能完成三次握手（收到ACK），则端口为开放状态；如果只收到一个RST包，则端口为关闭状态；如果什么都没有收到，则端口为过滤状态
 
-##### 实验代码
+#### 实验代码
 
 ```python
 #! /usr/bin/python
 
 from scapy.all import *
 
-dst_ip = "172.16.111.121"
+dst_ip = "192.168.56.122"
 dst_port=8888
 
-ret = sr1(IP(dst=dst_ip)/TCP(dport=dst_port,flags=0x2))
+ret = sr1(IP(dst=dst_ip)/TCP(dport=dst_port,flags="S"),timeout=10)
 if ret is None:
     print("Filtered")
 elif ret.haslayer(TCP):
     if ret[1].flags == 0x12:
+    	send_rst = sr(IP(dst=dst_ip)/TCP(sport=src_port,dport=dst_port,flags="AR"),timeout=10)
         print("Open")
     elif ret[1].flags == 0x14:
         print("Closed")
 ```
 
-##### 实验结果
+#### 实验结果
 
 **close**
 
@@ -88,7 +89,7 @@ sudo tcpdump -i eth0 -w tcp-connect-close.pcap
 
 ![tcp-close-wireshark](img/tcp-connect-close-tcpdump.png)
 
-攻击者接收到的为RST/ACK数据包，说明8888端口处于关闭状态，与预期相符
+攻击者接收道德为RST/ACK数据包，说明8888端口处于关闭状态，与预期相符
 
 使用nmap复刻结果
 
@@ -120,9 +121,9 @@ nmap复刻
 
 抓包结果
 
-![open-tcpdump](img/tcp-connect-open-tcpdump.png)
+![open-tcpdump](img/tcp-connect-open-tcpdump-python.png)
 
-在抓包的结果中看到了三个TCP，是一个完整的握手过程，说明端口开启，和预期相符合
+在抓包的结果中收到了被扫描端的SYN/ACK，扫描端也发出了ACK，是一个完整的握手过程，但RST与ACK同时发出，说明端口开启，和预期相符合
 
 nmap复刻
 
@@ -132,7 +133,7 @@ nmap复刻
 
 这种扫描技术和connect scan很相似。攻击者发送SYN包给受害者，如果端口开启，就会收到SYN/ACK响应包，但此时攻击者会发送RST数据包给受害者，来避免完成一个完整的TCP三次握手过程，避免被防火墙探测到。当端口关闭时，攻击者会收到RST数据包；当端口处于过滤状态时，会无数据包返回或受到数据包的ICMP错误包，显示不可达错误(type =3 code 1,2,3,9,10,13)
 
-##### 实验代码
+#### 实验代码
 
 ```python
 #! /usr/bin/python
@@ -156,7 +157,7 @@ elif ret.haslayer(ICMP):
 		print("Filtered")
 ```
 
-##### 实验结果
+#### 实验结果
 
 **close**
 
@@ -214,7 +215,7 @@ nmap复刻
 
 ![xmas](img/tcp-Xmas.png)
 
-##### 实验代码
+#### 实验代码
 
 ```python
 #! /usr/bin/python
@@ -235,7 +236,7 @@ elif ret.haslayer(ICMP):
 		print("Filtered")
 ```
 
-##### 实验结果
+#### 实验结果
 
 **close**
 
@@ -289,7 +290,7 @@ nmap复刻
 
 在攻击者发送TCP数据包时仅设置 TCP FIN 位。端口判断与Xmas扫描一致
 
-##### 实验代码
+#### 实验代码
 
 ```python
 #! /usr/bin/python
@@ -310,7 +311,7 @@ elif ret.haslayer(ICMP):
 		print("Filtered")
 ```
 
-##### 实验结果
+#### 实验结果
 
 **close**
 
@@ -364,7 +365,7 @@ nmap复刻
 
 在攻击者发送TCP数据包时不设置任何位。端口判断与Xmas扫描一致
 
-##### 实验代码
+#### 实验代码
 
 ```python
 #! /usr/bin/python
@@ -385,7 +386,7 @@ elif ret.haslayer(ICMP):
 		print("Filtered")
 ```
 
-##### 实验结果
+#### 实验结果
 
 **close**
 
@@ -439,7 +440,7 @@ nmap复刻
 
 UDP是一种无连接的传输协议，它不保证数据包一定到达目的地。当攻击者收到来自靶机的UDP响应包时，说明端口处于开启状态，但同时如果没有得到响应，端口也可能处于开启或过滤状态；如果收到ICMP端口不可达错误，说明端口关闭；如果是其他ICMP错误，说明端口处于过滤状态。
 
-##### 实验代码
+#### 实验代码
 
 ```python
 #! /usr/bin/python
@@ -466,7 +467,7 @@ elif ret.haslayer(IP) and ret.getlayer(IP).proto == 17:
 
 
 
-##### 实验结果
+#### 实验结果
 
 **close**
 
@@ -492,7 +493,7 @@ nmap复刻
 
 ![tcpdump](img/udp-filter-tcpdump.png)
 
-分析：在靶机中收到了来自攻击者的UDP数据包，但没有做任何响应，说明端口处于过滤状态，与预期相符合
+分析：在靶机中收到了来自攻击者的UDP数据包，但没有做任何响应，说明端口处于过滤状态==或开启状态==，与预期相符合
 
 nmap复刻
 
@@ -525,6 +526,14 @@ nmap复刻
 2. 在开启udp端口时，发送数据包总是没有响应
 
    `nc -l -u -p 53 < /etc/passwd`将监听命令改为上述，即可得到响应包，此时靶机向攻击者发送了/etc/passwd而不是空UDP包
+   
+3. 在进行tcp connect scan时使用python脚本扫描端没有向被害者发送ACK包，而是直接发送了[RST,ACK]包
+
+![tcp-connect-open-tcpdump-python](img/tcp-connect-open-tcpdump-python.png)
+
+但在使用nmap时，是进行了一个整个的三次握手过程
+
+![tcp-connect-nmap](img/tcp-connect-open-tcpdump-改.png)
 
 ## 参考资料
 
